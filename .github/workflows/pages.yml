@@ -50,7 +50,7 @@ jobs:
           echo "0fd21b9f9be37f4668ef0272027791e734da56a49b1d81054907aad1b3790892  /tmp/release-receipt.mjs" | sha256sum -c
           node /tmp/release-receipt.mjs verify https://oleg4311.github.io/secret-santa/ \
             --sha "${{ github.sha }}" --repo "${{ github.repository }}" --workflow CI \
-            --wait 300 --interval 10 --out receipt.json
+            --wait 900 --interval 10 --out receipt.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
