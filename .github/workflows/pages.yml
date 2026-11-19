@@ -1,0 +1,66 @@
+name: Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build # кладёт в site/version.json коммит этого запуска
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  # Проверка опубликованного: квитанция выпуска (инструмент release-receipt с проверкой контрольной суммы) и e2e на живом адресе
+  verify-live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Квитанция выпуска
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsSL -o /tmp/release-receipt.mjs https://github.com/Oleg4311/release-receipt/releases/download/v0.1.0/release-receipt.mjs
+          echo "0fd21b9f9be37f4668ef0272027791e734da56a49b1d81054907aad1b3790892  /tmp/release-receipt.mjs" | sha256sum -c
+          node /tmp/release-receipt.mjs verify https://oleg4311.github.io/secret-santa/ \
+            --sha "${{ github.sha }}" --repo "${{ github.repository }}" --workflow CI \
+            --wait 300 --interval 10 --out receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: receipt
+          path: receipt.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: e2e на живом URL
+        env:
+          BASE_URL: https://oleg4311.github.io/secret-santa/
+        run: npx playwright test --retries=2
