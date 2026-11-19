@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тайный Санта онлайн — жеребьёвка без регистрации</title>
+<meta name="description" content="Тайный Санта для компании: жеребьёвка с исключениями для пар, персональные ссылки или передача телефона по кругу. Без регистрации, ничего не хранится на сервере.">
+<meta name="theme-color" content="#c2272d">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Тайный Санта онлайн">
+<meta property="og:description" content="Жеребьёвка для компании без регистрации: исключения для пар, личные ссылки, ничего не хранится на сервере.">
+<meta property="og:image" content="https://oleg4311.github.io/secret-santa/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='26' width='48' height='30' rx='3' fill='%23c2272d'/%3E%3Crect x='4' y='18' width='56' height='12' rx='3' fill='%23e04a4f'/%3E%3Crect x='28' y='18' width='8' height='38' fill='%23ffd166'/%3E%3Cpath d='M32 18c-8-10-18-6-14 0 3 4 14 0 14 0zM32 18c8-10 18-6 14 0-3 4-14 0-14 0z' fill='%23ffd166'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#fbf6f1;--card:#fff;--ink:#231f20;--mut:#5f5a5c;--line:#e6ddd5;--acc:#c2272d;--acc-ink:#fff;--soft:#fdecea;--ok:#1b6e3a;--warn-bg:#fff4d6;--warn-ink:#5c4400;--focus:#1a56db}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1516;--card:#251e20;--ink:#f4ecea;--mut:#c0b4b2;--line:#3a2f31;--acc:#ff7b7f;--acc-ink:#2b0b0d;--soft:#3a2224;--ok:#6fdc93;--warn-bg:#3c3213;--warn-ink:#ffe6a3;--focus:#8ab4ff}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.top,main,footer{max-width:680px;margin:0 auto;padding-left:16px;padding-right:16px}
+.top{padding-top:22px}
+h1{margin:0;font-size:1.8rem;line-height:1.2}
+h2{margin:0 0 10px;font-size:1.1rem}
+.lead{color:var(--mut);margin:6px 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.center{text-align:center}
+.hint,.muted{color:var(--mut);font-size:.92rem}
+.hint{margin:0 0 10px}
+ol{margin:0;padding-left:20px}
+label{display:block;font-size:.9rem;color:var(--mut);margin:0 0 4px}
+input,select{width:100%;min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:480px){.row2{grid-template-columns:1fr}}
+.people{list-style:none;padding:0;margin:0 0 10px;display:grid;gap:10px}
+.person{display:grid;grid-template-columns:1fr 44px;gap:8px;align-items:start}
+.person .wish{grid-column:1;font-size:.95rem}
+.person .rm{grid-row:1;grid-column:2}
+.pairform{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+@media(max-width:480px){.pairform{grid-template-columns:1fr}}
+.pairform button{grid-column:1/-1}
+.pairs{list-style:none;padding:0;margin:10px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border-radius:999px;padding:4px 6px 4px 12px}
+.chip button{min-height:32px;min-width:32px;padding:0;border-radius:999px;border:0;background:transparent}
+.radios{display:grid;gap:8px}
+.radio{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:12px;color:var(--ink);font-size:1rem;margin:0}
+.radio input{width:22px;min-height:22px;margin-top:2px}
+.radio small{display:block;color:var(--mut)}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-height:46px;cursor:pointer}
+button:hover{border-color:var(--mut)}
+button.primary{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:700;width:100%;font-size:1.05rem}
+.problems{margin:0 0 12px;color:#fff;background:#a4161a;border-radius:12px;padding:10px 14px}
+@media(prefers-color-scheme:dark){.problems{background:#7a1f22}}
+.problems:empty{display:none}
+.problems ul{margin:0;padding-left:20px}
+.warn{background:var(--warn-bg);color:var(--warn-ink);border-radius:12px;padding:10px 14px;margin:0 0 12px}
+.links,.who{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.links li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.links .nm{font-weight:600;overflow-wrap:anywhere}
+.who button{width:100%;text-align:left}
+.who .seen{color:var(--ok);font-size:.9rem}
+.target{font-size:2rem;font-weight:800;line-height:1.2;margin:8px 0;overflow-wrap:anywhere;color:var(--acc)}
+.reveal{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#222;color:#fff;border-radius:999px;padding:10px 18px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw}
+.toast.on{opacity:1}
+footer{color:var(--mut);font-size:.88rem;padding-top:6px;padding-bottom:36px}
+a{color:var(--acc)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Тайный Санта</h1>
+  <p class="lead">Жеребьёвка для компании: без регистрации, с исключениями для пар. Ничего не хранится на сервере.</p>
+</header>
+<main id="app" tabindex="-1"><noscript>Для работы приложения нужен JavaScript.</noscript></main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<footer>
+  Данные остаются в вашем браузере и в личных ссылках участников. Срок хранения на сервере: ноль, сервера нет.
+  <a href="https://github.com/Oleg4311/secret-santa">Исходный код</a> · Сделано с помощью Claude
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
