@@ -1,0 +1,20 @@
+name: Cloudflare check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  whoami:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Токен Cloudflare принят и привязан к нужному аккаунту
+        run: |
+          npx --yes wrangler@4 whoami
+          # идентификатор из секрета должен совпадать с аккаунтом токена (значения в логе маскируются GitHub)
+          npx --yes wrangler@4 whoami | grep -q "$CLOUDFLARE_ACCOUNT_ID" && echo "ACCOUNT_ID совпадает с аккаунтом токена"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
