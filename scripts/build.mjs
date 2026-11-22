@@ -14,7 +14,19 @@ await build({
   target: 'es2022',
   minify: true,
 });
+// Адрес API онлайн-режима: переменная API_URL при сборке (в CI задаётся из деплоя Worker), иначе локальный wrangler dev.
+const apiUrl = (process.env.API_URL || 'http://127.0.0.1:8787').replace(/\/+$/, '');
+await build({
+  entryPoints: ['src/online.ts'],
+  outfile: 'site/online.js',
+  bundle: true,
+  format: 'iife',
+  target: 'es2022',
+  minify: true,
+  define: { API_URL: JSON.stringify(apiUrl) },
+});
 copyFileSync('web/index.html', 'site/index.html');
+copyFileSync('web/online.html', 'site/online.html');
 if (existsSync('web/og.png')) copyFileSync('web/og.png', 'site/og.png');
 
 let commit = process.env.GITHUB_SHA;
