@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Oleg4311/secret-santa/actions/workflows/ci.yml/badge.svg)](https://github.com/Oleg4311/secret-santa/actions/workflows/ci.yml)
 
-Жеребьёвка «Тайного Санты» для компании: без регистрации, с исключениями для пар, с личными ссылками или передачей телефона по кругу. Ничего не хранится на сервере: сервера нет.
+Жеребьёвка «Тайного Санты» для компании: без регистрации, с исключениями для пар, с личными ссылками или передачей телефона по кругу. Ничего не хранится на сервере: сервера нет. Для общей игры есть **онлайн-режим со «слепым организатором»** и анонимными вопросами подопечному (Cloudflare Workers + Durable Objects).
 
 **Открыть:** https://oleg4311.github.io/secret-santa/ · [English](#english)
 
@@ -23,6 +23,20 @@
 |---|---|---|
 | **Личные ссылки** | Каждому участнику уходит ссылка, в ней закодирована только его пара (кодирование не шифрование) | Организатор технически может открыть чужую ссылку, поэтому если вы играете сами, не делайте этого |
 | **По кругу на одном устройстве** | Каждый нажимает своё имя, смотрит пару и нажимает «Скрыть» | Никто, включая организатора, не видит чужих пар: до нажатия цель вообще не попадает в страницу |
+
+## Онлайн-режим: слепой организатор и анонимные вопросы
+
+Страница [online.html](https://oleg4311.github.io/secret-santa/online.html) для случая, когда организатор тоже участвует и не должен знать пары.
+
+1. Организатор вписывает имена (и исключения), получает **личное приглашение для каждого** и свою ссылку.
+2. Участник открывает приглашение и нажимает «Занять место»: **секретный ключ создаётся в его браузере**, на сервере остаётся только хеш SHA-256, приглашение сгорает.
+3. Когда заняты все места, организатор жмёт «Провести жеребьёвку». Она идёт на сервере, пары лежат под хешами ключей. **Ни ключей, ни пар организатор не получает.**
+4. Каждый открывает свою ссылку (она открывается сама в том же браузере) и видит только свою пару. Даритель может задать **анонимный вопрос** подопечному («какой размер перчаток?»), тот отвечает; в ответах сервера нет ни имени, ни номера дарителя.
+5. Игра удаляется сама через 60 дней (Durable Object alarm) или раньше по кнопке организатора.
+
+Что проверено: логика (39 тестов вместе с сервером): организатор не получает пар ни в одном ответе (150 случайных игр), в хранилище нет открытых секретов (только хеши), в странице подопечного нет следов дарителя, чужая переписка третьему участнику не видна, лимиты и права, невозможные исключения отвергаются при создании. Настоящий собранный Worker проверяется HTTP-тестами в Miniflare (CORS, коды ошибок, лимит тела, изоляция игр), а сценарий «организатор + четверо участников в отдельных браузерах, вопрос и ответ, удаление» идёт в Playwright на десктопе и телефоне. После каждого деплоя CI проходит дымовой круг игры на живом API.
+
+**Честные ограничения онлайн-режима.** Организатор может подсмотреть чужую пару только одним способом: занять чужое приглашение раньше самого участника. Участник это увидит (его приглашение уже использовано, ответ 410) и сможет поднять тревогу, но технически предотвратить нельзя. Сервер (то есть автор и Cloudflare) **технически видит имена, пары и вопросы** в открытом виде: это доверие к хозяину сервера, а не сквозное шифрование. Ключ участника не шифруется на устройстве; кто получил ссылку участника, видит его пару. Лимиты: до 30 участников, 5 вопросов от каждого, 280 знаков, срок 60 дней. Защиты от массового создания игр нет (ограничение по частоте можно добавить правилами Cloudflare).
 
 ## Чем отличается
 
@@ -47,7 +61,7 @@
 
 - **Ссылка не шифруется.** Тот, у кого она есть, видит пару. Отправляйте ссылку только самому участнику.
 - **Жеребьёвку нельзя «восстановить».** Результат живёт только в открытой странице и в разосланных ссылках. Если закрыть страницу до рассылки, придётся провести заново (настройки игры сохраняются в браузере).
-- Организатор не может быть «слепым» в режиме ссылок: для этого нужен сервер. Это запланировано отдельной версией (анонимные вопросы подопечному на Cloudflare Durable Objects). Режим «по кругу» уже даёт полную слепоту.
+- Организатор не может быть «слепым» в режиме ссылок: для этого нужен сервер, и он есть в онлайн-режиме выше. Режим «по кругу» тоже даёт полную слепоту.
 
 ## Разработка
 
@@ -56,6 +70,7 @@ npm install
 npm test            # алгоритм и формат ссылок (node:test)
 npm run typecheck
 npm run build       # сайт в site/
+npm run dev:worker  # API локально (wrangler); для e2e и тестов хватает Miniflare
 npm run e2e         # сценарии в браузере: десктоп и телефон (Playwright; один раз: npx playwright install chromium)
 ```
 
@@ -63,7 +78,7 @@ npm run e2e         # сценарии в браузере: десктоп и т
 
 ## English
 
-**Secret Santa** in your browser: a draw with exclusions (couples who shouldn't gift each other), personal links or pass-the-phone mode. No sign-up, no server, nothing stored. The draw is uniform among valid assignments (rejection sampling) with a Kuhn matching fallback for tight constraints, and impossible setups are explained instead of hanging. Links keep the assignment in the URL fragment (never sent over the network) and are **not encrypted**; pass-the-phone mode keeps everyone's target out of the page until they tap their own name.
+**Secret Santa** in your browser (plus an online mode on Cloudflare Workers + Durable Objects with a *blind organizer* — the organizer never receives pairs or keys, participants claim invites with browser-generated keys, anonymous questions to your giftee, auto-delete after 60 days; the server owner can technically see data, see README limits): a draw with exclusions (couples who shouldn't gift each other), personal links or pass-the-phone mode. No sign-up, no server, nothing stored. The draw is uniform among valid assignments (rejection sampling) with a Kuhn matching fallback for tight constraints, and impossible setups are explained instead of hanging. Links keep the assignment in the URL fragment (never sent over the network) and are **not encrypted**; pass-the-phone mode keeps everyone's target out of the page until they tap their own name.
 
 ---
 

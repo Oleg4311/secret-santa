@@ -14,10 +14,18 @@ export default defineConfig({
   ],
   webServer: live
     ? undefined
-    : {
-        command: 'npm run build && npm run serve',
-        url: 'http://127.0.0.1:4176/',
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
-      },
+    : [
+        {
+          command: 'npm run build && npm run serve',
+          url: 'http://127.0.0.1:4176/',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+        {
+          command: 'node scripts/dev-api.mjs',
+          url: 'http://127.0.0.1:8787/api/health',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      ],
 });
